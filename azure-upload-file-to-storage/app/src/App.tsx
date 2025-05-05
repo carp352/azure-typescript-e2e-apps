@@ -7,7 +7,7 @@ import { convertFileToArrayBuffer } from './lib/convert-file-to-arraybuffer';
 import './App.css';
 
 // Used only for local development
-const API_SERVER = import.meta.env.VITE_API_SERVER as string;
+//const API_SERVER = import.meta.env.VITE_API_SERVER as string;
 
 type SasResponse = {
   url: string;
@@ -98,7 +98,7 @@ function App() {
       })
       .then(() => {
         setUploadStatus('Successfully finished upload');
-        //return fetch(`${API_SERVER}/api/list?container=${containerName}`);
+        /*return fetch(`${API_SERVER}/api/list?container=${containerName}`);*/
         return fetch(`/api/list?container=${containerName}`);
       })
       .then((response) => {
