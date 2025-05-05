@@ -7,7 +7,8 @@ import { convertFileToArrayBuffer } from './lib/convert-file-to-arraybuffer';
 import './App.css';
 
 // Used only for local development
-//const API_SERVER = import.meta.env.VITE_API_SERVER as string;
+// if not defined, then set to empty string so the local server is used.
+const API_SERVER = (import.meta.env.VITE_API_SERVER as string) || '';
 
 type SasResponse = {
   url: string;
@@ -47,11 +48,7 @@ function App() {
 
     if (!selectedFile) return;
 
-    /*const url = `${API_SERVER}/api/sas?file=${encodeURIComponent(
-      selectedFile.name
-    )}&permission=${permission}&container=${containerName}&timerange=${timerange}`;*/
-
-    const url = `/api/sas?file=${encodeURIComponent(
+    const url = `${API_SERVER}/api/sas?file=${encodeURIComponent(
       selectedFile.name
     )}&permission=${permission}&container=${containerName}&timerange=${timerange}`;
 
@@ -98,8 +95,7 @@ function App() {
       })
       .then(() => {
         setUploadStatus('Successfully finished upload');
-        /*return fetch(`${API_SERVER}/api/list?container=${containerName}`);*/
-        return fetch(`/api/list?container=${containerName}`);
+        return fetch(`${API_SERVER}/api/list?container=${containerName}`);
       })
       .then((response) => {
         if (!response.ok) {
