@@ -47,7 +47,11 @@ function App() {
 
     if (!selectedFile) return;
 
-    const url = `${API_SERVER}/api/sas?file=${encodeURIComponent(
+    /*const url = `${API_SERVER}/api/sas?file=${encodeURIComponent(
+      selectedFile.name
+    )}&permission=${permission}&container=${containerName}&timerange=${timerange}`;*/
+
+    const url = `/api/sas?file=${encodeURIComponent(
       selectedFile.name
     )}&permission=${permission}&container=${containerName}&timerange=${timerange}`;
 
