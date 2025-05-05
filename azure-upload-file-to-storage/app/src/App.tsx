@@ -98,7 +98,8 @@ function App() {
       })
       .then(() => {
         setUploadStatus('Successfully finished upload');
-        return fetch(`${API_SERVER}/api/list?container=${containerName}`);
+        //return fetch(`${API_SERVER}/api/list?container=${containerName}`);
+        return fetch(`/api/list?container=${containerName}`);
       })
       .then((response) => {
         if (!response.ok) {
