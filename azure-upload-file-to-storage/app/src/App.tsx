@@ -124,10 +124,7 @@ function App() {
         <Box m={4}>
           {/* App Title */}
           <Typography variant="h4" gutterBottom>
-            Upload file to Azure Storage
-          </Typography>
-          <Typography variant="h5" gutterBottom>
-            with SAS token
+            Diebold Nixdorf OneTouch File Upload
           </Typography>
           <Typography variant="body1" gutterBottom>
             <b>Container: {containerName}</b>
