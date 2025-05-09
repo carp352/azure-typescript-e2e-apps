@@ -79,7 +79,8 @@ function App() {
   };
 
   const handleFileUpload = () => {
-    if (sasTokenUrl === '') return;
+    handleFileSasToken();
+    //TODO error handling
 
     convertFileToArrayBuffer(selectedFile as File)
       .then((fileArrayBuffer) => {
@@ -126,10 +127,6 @@ function App() {
           <Typography variant="h4" gutterBottom>
             Diebold Nixdorf OneTouch File Upload
           </Typography>
-          <Typography variant="body1" gutterBottom>
-            <b>Container: {containerName}</b>
-          </Typography>
-
           {/* File Selection Section */}
           <Box
             display="block"
@@ -141,7 +138,7 @@ function App() {
             <Button variant="contained" component="label">
               Select File
               <input type="file" hidden onChange={handleFileSelection} />
-            </Button>
+            </Button> {/*TODO: add a fild drag target to the right */}
             {selectedFile && selectedFile.name && (
               <Box my={2}>
                 <Typography variant="body2">{selectedFile.name}</Typography>
@@ -150,7 +147,7 @@ function App() {
           </Box>
 
           {/* SAS Token Section */}
-          {selectedFile && selectedFile.name && (
+          {/*selectedFile && selectedFile.name && (
             <Box
               display="block"
               justifyContent="left"
@@ -167,10 +164,10 @@ function App() {
                 </Box>
               )}
             </Box>
-          )}
+          )*/}
 
           {/* File Upload Section */}
-          {sasTokenUrl && (
+          {/*sasTokenUrl*/ selectedFile && selectedFile.name && (
             <Box
               display="block"
               justifyContent="left"
