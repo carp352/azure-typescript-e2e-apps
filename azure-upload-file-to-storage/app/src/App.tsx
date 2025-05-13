@@ -1,5 +1,6 @@
 import { BlockBlobClient } from '@azure/storage-blob';
-import { Box, Button, Card, CardMedia, Grid, Typography } from '@mui/material';
+//import { Box, Button, Card, CardMedia, Grid, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { ChangeEvent, useState } from 'react';
 import ErrorBoundary from './components/error-boundary';
 import { convertFileToArrayBuffer } from './lib/convert-file-to-arraybuffer';
@@ -20,9 +21,9 @@ type ListResponse = {
 function App() {
   const containerName = `upload`;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [sasTokenUrl, setSasTokenUrl] = useState<string>('');
+  //const [sasTokenUrl, setSasTokenUrl] = useState<string>('');
   const [uploadStatus, setUploadStatus] = useState<string>('');
-  const [list, setList] = useState<string[]>([]);
+  //const [list, setList] = useState<string[]>([]);
 
   const handleFileSelection = (event: ChangeEvent<HTMLInputElement>) => {
     const { target } = event;
@@ -38,52 +39,61 @@ function App() {
     setSelectedFile(target?.files[0]);
 
     // reset
-    setSasTokenUrl('');
+    //setSasTokenUrl('');
     setUploadStatus('');
   };
 
-  const handleFileSasToken = () => {
-    const permission = 'w'; //write
-    const timerange = 5; //minutes
+  const handleFileSasToken = async (): Promise<string> => {
+    const permission = 'w'; // write
+    const timerange = 5; // minutes
 
-    if (!selectedFile) return;
+    if (!selectedFile) return '';
 
     const url = `${API_SERVER}/api/sas?file=${encodeURIComponent(
       selectedFile.name
     )}&permission=${permission}&container=${containerName}&timerange=${timerange}`;
 
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} ${response.statusText} - URL: ${url}`);
-        }
-        return response.json();
-      })
-      .then((data: SasResponse) => {
-        const { url } = data;
-        setSasTokenUrl(url);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error) {
-          const { message, stack } = error;
-          setSasTokenUrl(`Error getting sas token: ${message} ${stack || ''}`);
-        } else {
-          setUploadStatus(String(error));
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         }
       });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText} - URL: ${url}`);
+      }
+
+      const data: SasResponse = await response.json();
+      const { url: sasUrl } = data;
+
+      if (!sasUrl || !sasUrl.startsWith('https://')) {
+        throw new Error('Invalid SAS token URL received from API');
+      }
+
+      //setSasTokenUrl(sasUrl);
+      return sasUrl;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        const { message, stack } = error;
+        return `Error getting sas token: ${message} ${stack || ''}`;
+      } else {
+        return String(error);
+      }
+    }
   };
 
   const handleFileUpload = () => {
-    handleFileSasToken();
-    //TODO error handling
+    handleFileSasToken()
+      .then((sasUrl) => {
+      if (!sasUrl || !sasUrl.startsWith('https://')) {
+        setUploadStatus('SAS token URL is not available ' + sasUrl);
+        return;
+      }
 
-    convertFileToArrayBuffer(selectedFile as File)
-      .then((fileArrayBuffer) => {
+      return convertFileToArrayBuffer(selectedFile as File)
+        .then((fileArrayBuffer) => {
         if (
           fileArrayBuffer === null ||
           fileArrayBuffer.byteLength < 1 ||
@@ -91,31 +101,38 @@ function App() {
         )
           return;
 
-        const blockBlobClient = new BlockBlobClient(sasTokenUrl);
+        const blockBlobClient = new BlockBlobClient(sasUrl);
         return blockBlobClient.uploadData(fileArrayBuffer);
-      })
-      .then(() => {
+        })
+        .then(() => {
         setUploadStatus('Successfully finished upload');
         return fetch(`${API_SERVER}/api/list?container=${containerName}`);
-      })
-      .then((response) => {
+        })
+        .then((response) => {
         if (!response.ok) {
           throw new Error(`Error: ${response.status} ${response.statusText} - URL: ${response.url}`);
         }
         return response.json();
-      })
-      .then((data: ListResponse) => {
-        setList(data.list);
+        })
+        .then((data: ListResponse) => {
+          //Make sure our file is in the list
+        //setList(data.list);
+          if (selectedFile && data.list.includes(selectedFile.name)) {
+            setUploadStatus('Upload verified: file is present in the container.');
+          } else {
+            setUploadStatus('Upload finished, but file not found in container list.');
+          }
+        });
       })
       .catch((error: unknown) => {
-        if (error instanceof Error) {
-          const { message, stack } = error;
-          setUploadStatus(
-            `Failed to finish upload with error : ${message} ${stack || ''}`
-          );
-        } else {
-          setUploadStatus(error as string);
-        }
+      if (error instanceof Error) {
+        const { message, stack } = error;
+        setUploadStatus(
+        `Failed to finish upload with error : ${message} ${stack || ''}`
+        );
+      } else {
+        setUploadStatus(String(error));
+      }
       });
   };
 
@@ -188,9 +205,9 @@ function App() {
             </Box>
           )}
 
-          {/* Uploaded Files Display */}
-          <Grid container spacing={2}>
-            {list.map((item) => (
+          {/* Uploaded Files Display
+          /* <Grid container spacing={2}>
+            list.map((item) => (
               <Grid item xs={6} sm={4} md={3} key={item}>
                 <Card>
                   {item.endsWith('.jpg') ||
@@ -206,7 +223,8 @@ function App() {
                 </Card>
               </Grid>
             ))}
-          </Grid>
+          </Grid> */
+          }
         </Box>
       </ErrorBoundary>
     </>
